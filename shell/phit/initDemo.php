@@ -35,7 +35,7 @@ class Phit_Shell_InitDemo extends Mage_Shell_Abstract
      */
     protected function _createConfig($nbWebsites)
     {
-        if (!is_int($nbWebsites) || $nbWebsites > 1) {
+        if (!is_int($nbWebsites) || $nbWebsites < 1) {
             throw new Mage_Core_Exception(
                 'Wrong value provided for option --nbWebsites :' . $this->getArg('nbWebsites')
             );
