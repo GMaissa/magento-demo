@@ -1,0 +1,16 @@
+{
+    "name": "GMaissa/magento-demo",
+    "type": "magento-module",
+    "license":"OSL-3.0",
+    "description":"A module to initialize a Magento demo",
+    "keywords":["magento"],
+    "authors":[
+        {
+            "name":"Guillaume Maïssa",
+            "email":"guillaume@maissa.fr"
+        }
+    ],
+    "require": {
+        "magento-hackathon/magento-composer-installer": "*"
+    }
+}
