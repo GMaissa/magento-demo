@@ -1,5 +1,5 @@
 {
-    "name": "GMaissa/magento-demo",
+    "name": "gmaissa/magento-demo",
     "type": "magento-module",
     "license":"OSL-3.0",
     "description":"A module to initialize a Magento demo",
