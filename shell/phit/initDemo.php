@@ -12,16 +12,38 @@ require_once '../abstract.php';
  */
 class Phit_Shell_InitDemo extends Mage_Shell_Abstract
 {
+    const MSG_DEFAULT = 0;
+    const MSG_INFO    = 1;
+    const MSG_SUCCESS = 2;
+    const MSG_ERROR   = 3;
+
     /**
      * Magento configuration
      * @var array $_config
      */
     protected $_config = array();
 
-    protected function _outputMsg($msg)
+    /**
+     * Output colors of different message types
+     * @var array $_msgColors
+     */
+    protected $_msgColors = array(
+        0 => "\033[0m",
+        1 => "\033[36m",
+        2 => "\033[1;32m",
+        3 => "\033[1;31m"
+    );
+
+    protected function _outputMsg($msg, $type)
     {
+        if (!array_key_exists($type, $this->_msgColors)) {
+            $type = self::MSG_DEFAULT;
+        }
         if (!$this->getArg('quiet')) {
-            echo $msg;
+            if ($this->getArg('color')) {
+                $msg = $this->_msgColors[$type] . ' ' . $msg . ' ' . $this->_msgColors[self::MSG_DEFAULT];
+            }
+            echo $msg . PHP_EOL;
         }
     }
 
@@ -41,7 +63,7 @@ class Phit_Shell_InitDemo extends Mage_Shell_Abstract
                 'Wrong value provided for option --nbWebsites :' . $this->getArg('nbWebsites')
             );
         } else {
-            $this->_outputMsg('Generating configuration for websites / stores creation ...' . PHP_EOL);
+            $this->_outputMsg('Generating configuration for websites / stores creation ...', self::MSG_INFO);
             for ($i = 1; $i <= $nbWebsites; $i++) {
                 $config[] = array(
                     'data'         => array(
@@ -67,7 +89,7 @@ class Phit_Shell_InitDemo extends Mage_Shell_Abstract
                     )
                 );
             }
-            $this->_outputMsg('Done' . PHP_EOL);
+            $this->_outputMsg('Done', self::MSG_SUCCESS);
 
             return $config;
         }
@@ -82,7 +104,7 @@ class Phit_Shell_InitDemo extends Mage_Shell_Abstract
      */
     protected function _createWebsites($websites)
     {
-        $this->_outputMsg('Creating websites / stores ...' . PHP_EOL);
+        $this->_outputMsg('Creating websites / stores ...', self::MSG_INFO);
         foreach ($websites as $websiteKey => $website) {
             $websiteModel = Mage::getModel('core/website');
             $websiteModel->setData($website['data']);
@@ -99,7 +121,7 @@ class Phit_Shell_InitDemo extends Mage_Shell_Abstract
 
             $this->_createStoreGroups($website['store_groups'], $websiteModel);
         }
-        $this->_outputMsg('Done' . PHP_EOL);
+        $this->_outputMsg('Done', self::MSG_SUCCESS);
     }
 
     /**
@@ -215,7 +237,7 @@ class Phit_Shell_InitDemo extends Mage_Shell_Abstract
      */
     protected function _massConfigDataUpdate(array $config)
     {
-        $this->_outputMsg('Saving configuration ...' . PHP_EOL);
+        $this->_outputMsg('Saving configuration ...', self::MSG_INFO);
         $setup = Mage::getResourceModel('core/setup');
         foreach ($config as $scope => $items) {
             foreach ($items as $scopeId => $item) {
@@ -226,7 +248,7 @@ class Phit_Shell_InitDemo extends Mage_Shell_Abstract
                 }
             }
         }
-        $this->_outputMsg('Done' . PHP_EOL);
+        $this->_outputMsg('Done', self::MSG_SUCCESS);
     }
 
     /**
@@ -244,7 +266,7 @@ class Phit_Shell_InitDemo extends Mage_Shell_Abstract
                     'Please provide a number of websites to be created: ' . $this->getArg('nbWebsites')
                 );
             } else {
-                $this->_outputMsg('Demo Initialization with ' . $this->getArg('nbWebsites') . ' stores ...' . PHP_EOL);
+                $this->_outputMsg('Demo Initialization with ' . $this->getArg('nbWebsites') . ' stores ...', self::MSG_INFO);
                 $websites = $this->_createConfig((int)$this->getArg('nbWebsites'));
                 $this->_config = array(
                     'default' => array(
@@ -258,7 +280,7 @@ class Phit_Shell_InitDemo extends Mage_Shell_Abstract
                 $this->_massConfigDataUpdate($this->_config);
             }
         } catch (Exception $exception) {
-            echo $exception->getMessage() . PHP_EOL;
+            $this->_outputMsg($exception->getMessage(), self::MSG_ERROR);
         }
     }
 
@@ -274,6 +296,7 @@ Usage:  php -f smile/initDemo.php -- [options]
 
   --nbWebsites <nb_websites> Initialize N websites
   --quiet                    Do not output messages other than warnings and errors
+  --color                    Output the messages in color
   help                       This help
 
 USAGE;
