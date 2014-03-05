@@ -292,7 +292,7 @@ class Phit_Shell_InitDemo extends Mage_Shell_Abstract
     public function usageHelp()
     {
         return <<<USAGE
-Usage:  php -f smile/initDemo.php -- [options]
+Usage:  php -f phit/initDemo.php -- [options]
 
   --nbWebsites <nb_websites> Initialize N websites
   --quiet                    Do not output messages other than warnings and errors
