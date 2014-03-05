@@ -3,7 +3,6 @@
     "type": "magento-module",
     "license":"OSL-3.0",
     "description":"A module to initialize a Magento demo",
-    "keywords":["magento"],
     "authors":[
         {
             "name":"Guillaume Maïssa",
