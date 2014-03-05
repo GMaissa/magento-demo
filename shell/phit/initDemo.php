@@ -36,7 +36,8 @@ class Phit_Shell_InitDemo extends Mage_Shell_Abstract
     protected function _createConfig($nbWebsites)
     {
         if (!is_int($nbWebsites) || $nbWebsites < 1) {
-            throw new Mage_Core_Exception(
+            throw Mage::exception(
+                'Mage_Core',
                 'Wrong value provided for option --nbWebsites :' . $this->getArg('nbWebsites')
             );
         } else {
@@ -129,7 +130,7 @@ class Phit_Shell_InitDemo extends Mage_Shell_Abstract
                 $defaultGroupId = $storeGroupId;
             }
 
-            $this->_createStores($storeGroup['stores'], $storeGroup);
+            $this->_createStores($storeGroup['stores'], $storeGroupModel);
         }
 
         $website->setDefaultGroupId($defaultGroupId);
@@ -238,12 +239,13 @@ class Phit_Shell_InitDemo extends Mage_Shell_Abstract
     {
         try {
             if (!$this->getArg('nbWebsites') || !is_integer((int)$this->getArg('nbWebsites'))) {
-                throw new Mage_Core_Exception(
+                throw Mage::exception(
+                    'Mage_Core',
                     'Please provide a number of websites to be created: ' . $this->getArg('nbWebsites')
                 );
             } else {
                 $this->_outputMsg('Demo Initialization with ' . $this->getArg('nbWebsites') . ' stores ...' . PHP_EOL);
-                $websites = $this->_createConfig($this->getArg('nbWebsites'));
+                $websites = $this->_createConfig((int)$this->getArg('nbWebsites'));
                 $this->_config = array(
                     'default' => array(
                         'web/url/use_store'             => 1,
@@ -256,7 +258,7 @@ class Phit_Shell_InitDemo extends Mage_Shell_Abstract
                 $this->_massConfigDataUpdate($this->_config);
             }
         } catch (Exception $exception) {
-            echo implode(PHP_EOL , $exception->getMessages());
+            echo $exception->getMessage() . PHP_EOL;
         }
     }
 
