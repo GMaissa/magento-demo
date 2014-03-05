@@ -98,7 +98,7 @@ class Phit_Shell_InitDemo extends Mage_Shell_Abstract
     /**
      * Store the websites / store groups / stores in DB
      *
-     * @param array $websites list of websites / store group / stores
+     * @param array $websites list of websites
      *
      * @return void
      */
@@ -127,7 +127,7 @@ class Phit_Shell_InitDemo extends Mage_Shell_Abstract
     /**
      * Store the store groups for a given website
      *
-     * @param array                   $storeGroups list of websites / store group / stores
+     * @param array                   $storeGroups list of store groups
      * @param Mage_Core_Model_Website $website     website
      *
      * @return void
