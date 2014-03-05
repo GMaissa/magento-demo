@@ -3,7 +3,7 @@
 require_once '../abstract.php';
 
 /**
- * Smile Demo Initialization Shell Script
+ * Magento Demo Initialization Shell Script
  *
  * @category  Phit
  * @package   Phit_Demo
