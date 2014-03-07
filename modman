@@ -1,4 +1,5 @@
 # Comments are supported, begin a line with a hash
 # Shell scripts
+shell/phit/abstract.php     shell/phit/abstract.php
 shell/phit/initDemo.php     shell/phit/initDemo.php
 
