@@ -15,7 +15,8 @@ class Phit_Shell_InitDemo extends Mage_Shell_Abstract
     const MSG_DEFAULT = 0;
     const MSG_INFO    = 1;
     const MSG_SUCCESS = 2;
-    const MSG_ERROR   = 3;
+    const MSG_WARNING = 3;
+    const MSG_ERROR   = 4;
 
     /**
      * Magento configuration
@@ -31,14 +32,37 @@ class Phit_Shell_InitDemo extends Mage_Shell_Abstract
         0 => "\033[0m",
         1 => "\033[36m",
         2 => "\033[1;32m",
-        3 => "\033[1;31m"
+        3 => "\033[1;33m",
+        4 => "\033[1;31m"
     );
 
-    protected function _outputMsg($msg, $type)
+    /**
+     * Label to be displayed before the message
+     * @var array $_msgLabels
+     */
+    protected $_msgLabels = array(
+        0 => '',
+        1 => '[INFO] ',
+        2 => '[SUCCESS] ',
+        3 => '[WARNING] ',
+        4 => '[ERROR] '
+    );
+
+    /**
+     * Output a message
+     *
+     * @param string $msg  message to be displayed
+     * @param mixed  $type message type
+     *
+     * @return void
+     */
+    protected function _outputMsg($msg, $type=false)
     {
-        if (!array_key_exists($type, $this->_msgColors)) {
+        if (!$type || !array_key_exists($type, $this->_msgColors)) {
             $type = self::MSG_DEFAULT;
         }
+        $msg = $this->_msgLabels[$type] . $msg;
+
         if (!$this->getArg('quiet')) {
             if ($this->getArg('color')) {
                 $msg = $this->_msgColors[$type] . ' ' . $msg . ' ' . $this->_msgColors[self::MSG_DEFAULT];
@@ -128,7 +152,7 @@ class Phit_Shell_InitDemo extends Mage_Shell_Abstract
      * Store the store groups for a given website
      *
      * @param array                   $storeGroups list of store groups
-     * @param Mage_Core_Model_Website $website     website
+     * @param Mage_Core_Model_Website $website     website object
      *
      * @return void
      */
@@ -137,7 +161,7 @@ class Phit_Shell_InitDemo extends Mage_Shell_Abstract
         $defaultGroupId = null;
 
         foreach ($storeGroups as $storeGroup) {
-            $rootCategoryId  = $this->_getCategoryId($storeGroup['rootCategory']);
+            $rootCategoryId  = $this->_getRootCategoryId($storeGroup['rootCategory']);
             $storeGroupModel = Mage::getModel('core/store_group');
             $storeGroup['data']['website_id']       = $website->getId();
             $storeGroup['data']['root_category_id'] = $rootCategoryId;
@@ -163,7 +187,7 @@ class Phit_Shell_InitDemo extends Mage_Shell_Abstract
      * Store the stores for a given store group
      *
      * @param array                       $stores     list of stores
-     * @param Mage_Core_Model_Store_Group $storeGroup store group
+     * @param Mage_Core_Model_Store_Group $storeGroup store group object
      *
      * @return void
      */
@@ -198,13 +222,42 @@ class Phit_Shell_InitDemo extends Mage_Shell_Abstract
     }
 
     /**
+     * Create children categories under a root category
+     *
+     * @param integer $parentCategoryId root category id under which the
+     *                                  children categories should be created
+     *
+     * @return void
+     */
+    protected function _createChildrenCategories($parentCategoryId)
+    {
+        $categoriesToSetup = array();
+        for ($i = 1; $i < 10; $i++) {
+            $categoriesToSetup[] = array(
+                'name'            => 'Category ' . $i,
+                'include_in_menu' => true,
+                'is_active'       => true
+            );
+        }
+
+        foreach ($categoriesToSetup as $categoryData) {
+            $category = Mage::getModel('catalog/category');
+
+            $category->addData($categoryData);
+            $category->setAttributeSetId($category->getDefaultAttributeSetId());
+            $category->save();
+            $category->move($parentCategoryId, null);
+        }
+    }
+
+    /**
      * Retrieve a category id from its name and create it if it does not exist
      *
      * @param string $categoryName category name to retrieve
      *
      * @return string
      */
-    protected function _getCategoryId($categoryName)
+    protected function _getRootCategoryId($categoryName)
     {
         $category = Mage::getModel('catalog/category')
             ->getCollection()
@@ -222,6 +275,8 @@ class Phit_Shell_InitDemo extends Mage_Shell_Abstract
                 ->setPath('1')
                 ->setInitialSetupFlag(true)
                 ->save();
+
+            $this->_createChildrenCategories($category->getId());
         }
         $categoryId = $category->getId();
 
@@ -263,15 +318,19 @@ class Phit_Shell_InitDemo extends Mage_Shell_Abstract
             if (!$this->getArg('nbWebsites') || !is_integer((int)$this->getArg('nbWebsites'))) {
                 throw Mage::exception(
                     'Mage_Core',
-                    'Please provide a number of websites to be created: ' . $this->getArg('nbWebsites')
+                    'Please provide a number of websites to be created : ' . $this->getArg('nbWebsites')
                 );
             } else {
-                $this->_outputMsg('Demo Initialization with ' . $this->getArg('nbWebsites') . ' stores ...', self::MSG_INFO);
+                $this->_outputMsg(
+                    'Demo Initialization with ' . $this->getArg('nbWebsites') . ' stores ...',
+                    self::MSG_INFO
+                );
                 $websites = $this->_createConfig((int)$this->getArg('nbWebsites'));
                 $this->_config = array(
                     'default' => array(
                         'web/url/use_store'             => 1,
-                        'general/region/state_required' => 'DE,AT,CA,ES,EE,US,FI,LV,LT,RO,CH'
+                        'general/region/state_required' => 'DE,AT,CA,ES,EE,US,FI,LV,LT,RO,CH',
+                        'catalog/price/scope'           => 1
                     ),
                     'websites' => array(),
                     'stores' => array()
@@ -279,7 +338,10 @@ class Phit_Shell_InitDemo extends Mage_Shell_Abstract
                 $this->_createWebsites($websites);
                 $this->_massConfigDataUpdate($this->_config);
             }
+        } catch (Mage_Core_Exception $exception) {
+            $this->_outputMsg($exception->getMessage(), self::MSG_WARNING);
         } catch (Exception $exception) {
+            Mage::logException($exception);
             $this->_outputMsg($exception->getMessage(), self::MSG_ERROR);
         }
     }
