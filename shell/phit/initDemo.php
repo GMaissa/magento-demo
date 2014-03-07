@@ -42,10 +42,10 @@ class Phit_Shell_InitDemo extends Mage_Shell_Abstract
      */
     protected $_msgLabels = array(
         0 => '',
-        1 => '[INFO] ',
+        1 => '[INFO]    ',
         2 => '[SUCCESS] ',
         3 => '[WARNING] ',
-        4 => '[ERROR] '
+        4 => '[ERROR]   '
     );
 
     /**
