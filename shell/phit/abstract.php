@@ -12,6 +12,9 @@ require_once dirname(__FILE__) . '/../abstract.php';
  */
 abstract class Phit_Shell_Abstract extends Mage_Shell_Abstract
 {
+    /**
+     * Message types
+     */
     const MSG_DEFAULT = 0;
     const MSG_INFO    = 1;
     const MSG_SUCCESS = 2;
@@ -25,9 +28,9 @@ abstract class Phit_Shell_Abstract extends Mage_Shell_Abstract
     protected $_msgColors = array(
         0 => "\033[0m",
         1 => "\033[36m",
-        2 => "\033[1;32m",
-        3 => "\033[1;33m",
-        4 => "\033[1;31m"
+        2 => "\033[32m",
+        3 => "\033[33m",
+        4 => "\033[31m"
     );
 
     /**
@@ -41,6 +44,17 @@ abstract class Phit_Shell_Abstract extends Mage_Shell_Abstract
         3 => '[WARNING] ',
         4 => '[ERROR]   '
     );
+
+    /**
+     * Class constructor to initialize the data
+     *
+     * Seems useless but it will ease calling the Mage_Shell_Abstract constructor
+     * from a child class
+     */
+    public function __construct()
+    {
+        parent::__construct();
+    }
 
     /**
      * Output a message
