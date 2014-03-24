@@ -64,7 +64,25 @@ class Phit_Shell_InitDemo extends Phit_Shell_Abstract
      * Products CSV filename
      * @var string $_csvFilename
      */
-    protected $_csvFilename = 'demo-products.csv';
+    protected $_csvFilename = 'demo-products';
+
+    /**
+     * Max number of product lines in a CSV file
+     * @var int $_csvMaxLines
+     */
+    protected $_csvMaxLines = 10000;
+
+    /**
+     * Number of product lines in the current CSV file
+     * @var int $_csvNbLines
+     */
+    protected $_csvNbLines = 0;
+
+    /**
+     * CSV file number
+     * @var int $_csvFileNum
+     */
+    protected $_csvFileNum = false;
 
     /**
      * Class constructor to initialize the data
@@ -321,7 +339,7 @@ class Phit_Shell_InitDemo extends Phit_Shell_Abstract
     protected function _initProductLines()
     {
         $this->_productLineFull = "##SKU##,,Default,simple,Category ##CATID##,Demo Root Category,web##WEBSITEID##,,,,"
-                                ."2014-03-13 14:57:39,,,,,description du produit ##PRODUCTID##,,,,,0,no_selection,,"
+                                . "2014-03-13 14:57:39,,,,,description du produit ##PRODUCTID##,,,,,0,no_selection,,"
                                 . "Utiliser config,,,,,,,,Utiliser config,Utiliser config,Produit ##PRODUCTID##,,,"
                                 . "Bloc après Colonne Info,,##PRICE##,,,0,description courte du produit ##PRODUCTID##,"
                                 . "no_selection,,,,,1,2,no_selection,,2014-03-13 16:41:12,,,##URLKEY##,,4,10.0000,"
@@ -361,29 +379,35 @@ class Phit_Shell_InitDemo extends Phit_Shell_Abstract
      */
     protected function _initCsvFile()
     {
+        if (!$this->_csvFileNum) {
+            $this->_csvFileNum = 1;
+        }
         $fileHeader     = "sku,_store,_attribute_set,_type,_category,_root_category,_product_websites,color,cost,"
-                          . "country_of_manufacture,created_at,custom_design,custom_design_from,custom_design_to,"
-                          . "custom_layout_update,description,gallery,gift_message_available,gift_wrapping_available,"
-                          . "gift_wrapping_price,has_options,image,image_label,is_returnable,manufacturer,"
-                          . "media_gallery,meta_description,meta_keyword,meta_title,minimal_price,msrp,"
-                          . "msrp_display_actual_price_type,msrp_enabled,name,news_from_date,news_to_date,"
-                          . "options_container,page_layout,price,related_tgtr_position_behavior,"
-                          . "related_tgtr_position_limit,required_options,short_description,small_image,"
-                          . "small_image_label,special_from_date,special_price,special_to_date,status,tax_class_id,"
-                          . "thumbnail,thumbnail_label,updated_at,upsell_tgtr_position_behavior,"
-                          . "upsell_tgtr_position_limit,url_key,url_path,visibility,weight,qty,min_qty,"
-                          . "use_config_min_qty,is_qty_decimal,backorders,use_config_backorders,min_sale_qty,"
-                          . "use_config_min_sale_qty,max_sale_qty,use_config_max_sale_qty,is_in_stock,"
-                          . "notify_stock_qty,use_config_notify_stock_qty,manage_stock,use_config_manage_stock,"
-                          . "stock_status_changed_auto,use_config_qty_increments,qty_increments,"
-                          . "use_config_enable_qty_inc,enable_qty_increments,is_decimal_divided,_links_related_sku,"
-                          . "_links_related_position,_links_crosssell_sku,_links_crosssell_position,_links_upsell_sku"
-                          . ",_links_upsell_position,_associated_sku,_associated_default_qty,_associated_position,"
-                          . "_tier_price_website,_tier_price_customer_group,_tier_price_qty,_tier_price_price,"
-                          . "_group_price_website,_group_price_customer_group,_group_price_price,_media_attribute_id,"
-                          . "_media_image,_media_lable,_media_position,_media_is_disabled";
-
-        $this->_csvFile = fopen(Mage::getBaseDir('var') . DS . 'import' . DS . $this->_csvFilename, 'w');
+                        . "country_of_manufacture,created_at,custom_design,custom_design_from,custom_design_to,"
+                        . "custom_layout_update,description,gallery,gift_message_available,gift_wrapping_available,"
+                        . "gift_wrapping_price,has_options,image,image_label,is_returnable,manufacturer,"
+                        . "media_gallery,meta_description,meta_keyword,meta_title,minimal_price,msrp,"
+                        . "msrp_display_actual_price_type,msrp_enabled,name,news_from_date,news_to_date,"
+                        . "options_container,page_layout,price,related_tgtr_position_behavior,"
+                        . "related_tgtr_position_limit,required_options,short_description,small_image,"
+                        . "small_image_label,special_from_date,special_price,special_to_date,status,tax_class_id,"
+                        . "thumbnail,thumbnail_label,updated_at,upsell_tgtr_position_behavior,"
+                        . "upsell_tgtr_position_limit,url_key,url_path,visibility,weight,qty,min_qty,"
+                        . "use_config_min_qty,is_qty_decimal,backorders,use_config_backorders,min_sale_qty,"
+                        . "use_config_min_sale_qty,max_sale_qty,use_config_max_sale_qty,is_in_stock,"
+                        . "notify_stock_qty,use_config_notify_stock_qty,manage_stock,use_config_manage_stock,"
+                        . "stock_status_changed_auto,use_config_qty_increments,qty_increments,"
+                        . "use_config_enable_qty_inc,enable_qty_increments,is_decimal_divided,_links_related_sku,"
+                        . "_links_related_position,_links_crosssell_sku,_links_crosssell_position,_links_upsell_sku"
+                        . ",_links_upsell_position,_associated_sku,_associated_default_qty,_associated_position,"
+                        . "_tier_price_website,_tier_price_customer_group,_tier_price_qty,_tier_price_price,"
+                        . "_group_price_website,_group_price_customer_group,_group_price_price,_media_attribute_id,"
+                        . "_media_image,_media_lable,_media_position,_media_is_disabled";
+        $this->_csvFile = fopen(
+            Mage::getBaseDir('var') . DS . 'import' . DS . $this->_csvFilename .
+            '-' . sprintf("%03d", $this->_csvFileNum) . '.csv',
+            'w'
+        );
 
         fwrite($this->_csvFile, $fileHeader . "\n");
     }
@@ -401,6 +425,14 @@ class Phit_Shell_InitDemo extends Phit_Shell_Abstract
         );
 
         for ($i = 1; $i <= $this->_nbProducts; $i++) {
+            // If the file contains more lines than allowed, we want to create a new file
+            if ($this->_csvNbLines >= $this->_csvMaxLines) {
+                fclose($this->_csvFile);
+                $this->_csvFileNum++;
+                $this->_csvNbLines = 0;
+                $this->_initCsvFile();
+            }
+
             $productInfo     = $this->_initProductInfo($i);
             $nbWebsites      = rand(1, $this->_nbWebsites);
             $productWebsites = array_rand($this->_websiteIds, $nbWebsites);
@@ -415,6 +447,7 @@ class Phit_Shell_InitDemo extends Phit_Shell_Abstract
                     $prodLine = preg_replace(array_keys($productInfo), $productInfo, $this->_productLinePart);
                 }
                 fwrite($this->_csvFile, $prodLine . "\n");
+                $this->_csvNbLines++;
             }
         }
         fclose($this->_csvFile);
@@ -488,8 +521,8 @@ class Phit_Shell_InitDemo extends Phit_Shell_Abstract
                 $this->_config = array(
                     'default' => array(
                         array(
-                            'web/url/use_store'             => 1,
-                            'catalog/price/scope'           => 1
+                            'web/url/use_store'   => 1,
+                            'catalog/price/scope' => 1
                         )
                     ),
                     'websites' => array(),
